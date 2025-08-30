@@ -1,0 +1,12 @@
+groups:
+- name: autodev_execution
+  rules:
+  - alert: HighJobFailureRate
+    expr: |
+      rate(autodev_job_retries_total[5m]) > 0.15
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High job failure rate detected"
+      description: "The number of job retries in the last 5 minutes exceeded 15% of total jobs."
