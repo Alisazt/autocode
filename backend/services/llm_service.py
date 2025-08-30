@@ -8,10 +8,9 @@ structure based on a template and description. The cost of each call is
 estimated using predefined pricing for supported models.
 """
 """LLM integration service for CrewAI AutoDev."""
-
-from __future__ import annotations
-import asyncio
-import json
+external language model provider (e.g. OpenAI) asynchronously. It also defines
+a simple `CodeGenerationAgent` that uses the LLM to generate a project structure based on a template and description. The cost of each call is estimated using predefined pricing for supported models.
+"""
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from enum import Enum

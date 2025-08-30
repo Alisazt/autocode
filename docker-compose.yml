@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  backend:
+    build: ./autodev/backend
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/autodev
+    depends_on:
+      - redis
+      - postgres
+
+  worker:
+    build: ./autodev/backend
+    command: celery -A backend.services.execution_engine worker --loglevel=info
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=autodev
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
