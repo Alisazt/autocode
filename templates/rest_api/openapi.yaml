@@ -1,0 +1,31 @@
+openapi: 3.0.3
+info:
+  title: Demo REST API
+  version: "1.0.0"
+paths:
+  /v1/ping:
+    get:
+      responses:
+        '200':
+          description: pong
+  /v1/items:
+    get:
+      responses:
+        '200':
+          description: list
+  /v1/items/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: item
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
