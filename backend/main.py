@@ -81,5 +81,72 @@ def create_app() -> FastAPI:
     return app
 
 
-# Create a module-level app instance so `uvicorn backend.main:app` works
+"""Entry point for the CrewAI AutoDev prototype backend with integrations."""
+
+import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+
+from .api.hitl import router as hitl_router
+
+# Global services
+llm_service = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global llm_service
+    
+    # Initialize services
+    from .services.llm_service import LLMService, LLMConfig, LLMProvider
+    
+    llm_config = LLMConfig(
+        provider=LLMProvider.OPENAI,
+        api_key=os.getenv("OPENAI_API_KEY", "your-api-key-here"),
+        default_model="gpt-4o-mini"
+    )
+    
+    llm_service = LLMService(llm_config)
+    yield
+    
+    if llm_service and hasattr(llm_service, 'session') and llm_service.session:
+        await llm_service.session.close()
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title="CrewAI AutoDev Prototype",
+        description="AI-powered code generation platform",
+        version="0.1.0",
+        lifespan=lifespan
+    )
+    
+    # CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://localhost:3001"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    # Include routers
+    app.include_router(hitl_router)
+
+    @app.get("/")
+    async def root() -> dict[str, str]:
+        return {"message": "CrewAI AutoDev Prototype backend is running"}
+    
+    @app.get("/health")
+    async def health_check():
+        return {
+            "status": "healthy",
+            "services": {
+                "llm": "connected" if llm_service else "disconnected"
+            }
+        }
+
+    return app
+
+app = create_app()
 app = create_app()
